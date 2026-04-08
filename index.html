@@ -152,7 +152,6 @@
       color: #444;
     }
 
-    /* Summary */
     .summary {
       background: #fff;
       border-radius: 12px;
@@ -230,7 +229,6 @@
     .btn-reset  { background: #f0f0f0; color: #555; }
     .btn-excel  { background: #1e6c3a; color: #fff; }
 
-    /* Date / order info bar */
     .info-bar {
       display: flex;
       gap: 16px;
@@ -265,7 +263,6 @@
 <div class="container">
   <h1>Blumen Preiskalkulator</h1>
 
-  <!-- Info Bar -->
   <div class="info-bar">
     <label>
       Datum
@@ -277,7 +274,6 @@
     </label>
   </div>
 
-  <!-- ROSEN -->
   <div class="section rosen">
     <div class="section-header open" onclick="toggleSection(this)">
       <span class="icon">🌹</span> Rosen
@@ -309,7 +305,6 @@
     </div>
   </div>
 
-  <!-- GERBERA -->
   <div class="section gerbera">
     <div class="section-header open" onclick="toggleSection(this)">
       <span class="icon">🌼</span> Gerbera
@@ -341,7 +336,6 @@
     </div>
   </div>
 
-  <!-- PISTACIA -->
   <div class="section pistacia">
     <div class="section-header open" onclick="toggleSection(this)">
       <span class="icon">🌿</span> Pistacia
@@ -373,7 +367,6 @@
     </div>
   </div>
 
-  <!-- SUMMARY -->
   <div class="summary">
     <h2>Gesamtübersicht</h2>
     <div class="summary-grid">
@@ -410,18 +403,10 @@
 </div>
 
 <script>
-// ── State ─────────────────────────────────────────────────────────────────────
-const state = {
-  rosen:    [],
-  gerbera:  [],
-  pistacia: []
-};
-
+const state = { rosen: [], gerbera: [], pistacia: [] };
 let counters = { rosen: 0, gerbera: 0, pistacia: 0 };
-
 const EINHEITEN = ['Stk', 'Bd', 'Bund', 'Topf', 'Kiste', 'Pack'];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 }
@@ -432,16 +417,9 @@ function parseNum(val) {
   return isNaN(n) ? 0 : n;
 }
 
-// ── Row management ────────────────────────────────────────────────────────────
 function addRow(cat, data = {}) {
   const id = ++counters[cat];
-  const row = {
-    id,
-    artikel: data.artikel || '',
-    menge:   data.menge   !== undefined ? data.menge   : '',
-    einheit: data.einheit || 'Stk',
-    vk:      data.vk      !== undefined ? data.vk      : ''
-  };
+  const row = { id, artikel: data.artikel || '', menge: data.menge !== undefined ? data.menge : '', einheit: data.einheit || 'Stk', vk: data.vk !== undefined ? data.vk : '' };
   state[cat].push(row);
   renderTable(cat);
   updateTotals();
@@ -458,7 +436,6 @@ function updateField(cat, id, field, value) {
   if (!row) return;
   row[field] = value;
   updateTotals();
-  // only update the gesamt cell, not the whole table
   const cell = document.getElementById(`gesamt-${cat}-${id}`);
   if (cell) {
     const total = parseNum(String(row.menge)) * parseNum(String(row.vk));
@@ -466,37 +443,19 @@ function updateField(cat, id, field, value) {
   }
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
 function renderTable(cat) {
   const tbody = document.querySelector(`#tbl-${cat} tbody`);
   tbody.innerHTML = '';
-
   state[cat].forEach((row, idx) => {
     const tr = document.createElement('tr');
-
-    // einheit options
-    const opts = EINHEITEN.map(e =>
-      `<option value="${e}" ${e === row.einheit ? 'selected' : ''}>${e}</option>`
-    ).join('');
-
+    const opts = EINHEITEN.map(e => `<option value="${e}" ${e === row.einheit ? 'selected' : ''}>${e}</option>`).join('');
     const total = parseNum(String(row.menge)) * parseNum(String(row.vk));
-
     tr.innerHTML = `
       <td class="row-num">${idx + 1}</td>
-      <td><input type="text" value="${escHtml(row.artikel)}" placeholder="Sorte / Bezeichnung"
-          onchange="updateField('${cat}',${row.id},'artikel',this.value)" /></td>
-      <td><input type="number" min="0" step="1" value="${row.menge}"
-          placeholder="0"
-          oninput="updateField('${cat}',${row.id},'menge',this.value)" /></td>
-      <td>
-        <select style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fafafa;font-size:0.9rem"
-            onchange="updateField('${cat}',${row.id},'einheit',this.value)">
-          ${opts}
-        </select>
-      </td>
-      <td><input type="number" min="0" step="0.01" value="${row.vk}"
-          placeholder="0,00"
-          oninput="updateField('${cat}',${row.id},'vk',this.value)" /></td>
+      <td><input type="text" value="${escHtml(row.artikel)}" placeholder="Sorte / Bezeichnung" onchange="updateField('${cat}',${row.id},'artikel',this.value)" /></td>
+      <td><input type="number" min="0" step="1" value="${row.menge}" placeholder="0" oninput="updateField('${cat}',${row.id},'menge',this.value)" /></td>
+      <td><select style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fafafa;font-size:0.9rem" onchange="updateField('${cat}',${row.id},'einheit',this.value)">${opts}</select></td>
+      <td><input type="number" min="0" step="0.01" value="${row.vk}" placeholder="0,00" oninput="updateField('${cat}',${row.id},'vk',this.value)" /></td>
       <td class="col-gesamt" id="gesamt-${cat}-${row.id}">${total > 0 ? fmt(total) : '—'}</td>
       <td><button class="btn-del" title="Zeile löschen" onclick="deleteRow('${cat}',${row.id})">✕</button></td>
     `;
@@ -508,11 +467,8 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Totals ────────────────────────────────────────────────────────────────────
 function subtotal(cat) {
-  return state[cat].reduce((sum, r) => {
-    return sum + parseNum(String(r.menge)) * parseNum(String(r.vk));
-  }, 0);
+  return state[cat].reduce((sum, r) => sum + parseNum(String(r.menge)) * parseNum(String(r.vk)), 0);
 }
 
 function updateTotals() {
@@ -528,25 +484,16 @@ function updateTotals() {
   document.getElementById('tot-gesamt').textContent = fmt(grand);
 }
 
-// ── Section toggle ────────────────────────────────────────────────────────────
 function toggleSection(header) {
   const body = header.nextElementSibling;
   const isOpen = header.classList.contains('open');
-  if (isOpen) {
-    body.style.display = 'none';
-    header.classList.remove('open');
-  } else {
-    body.style.display = '';
-    header.classList.add('open');
-  }
+  if (isOpen) { body.style.display = 'none'; header.classList.remove('open'); }
+  else { body.style.display = ''; header.classList.add('open'); }
 }
 
-// ── Reset ─────────────────────────────────────────────────────────────────────
 function resetAll() {
   if (!confirm('Alle Einträge löschen und zurücksetzen?')) return;
-  state.rosen = [];
-  state.gerbera = [];
-  state.pistacia = [];
+  state.rosen = []; state.gerbera = []; state.pistacia = [];
   counters = { rosen: 0, gerbera: 0, pistacia: 0 };
   ['rosen','gerbera','pistacia'].forEach(cat => renderTable(cat));
   updateTotals();
@@ -554,91 +501,59 @@ function resetAll() {
   document.getElementById('inp-datum').value = '';
 }
 
-// ── Excel Export ──────────────────────────────────────────────────────────────
 function exportExcel() {
   const wb = XLSX.utils.book_new();
-
-  const datum   = document.getElementById('inp-datum').value || '';
+  const datum = document.getElementById('inp-datum').value || '';
   const auftrag = document.getElementById('inp-auftrag').value || '';
-
   const cats = [
-    { key: 'rosen',    label: 'Rosen',    color: 'FFC0395E' },
-    { key: 'gerbera',  label: 'Gerbera',  color: 'FFD4760A' },
-    { key: 'pistacia', label: 'Pistacia', color: 'FF4A7C3F' }
+    { key: 'rosen', label: 'Rosen' },
+    { key: 'gerbera', label: 'Gerbera' },
+    { key: 'pistacia', label: 'Pistacia' }
   ];
-
-  // ── Combined sheet ───────────────────────────────────────────────────────
   const wsData = [];
   wsData.push(['Blumen Preiskalkulator']);
   wsData.push([]);
-  if (datum   ) wsData.push(['Datum:', datum]);
-  if (auftrag ) wsData.push(['Auftrag / Kunde:', auftrag]);
+  if (datum) wsData.push(['Datum:', datum]);
+  if (auftrag) wsData.push(['Auftrag / Kunde:', auftrag]);
   wsData.push([]);
-
   const grandCells = [];
-
   cats.forEach(({ key, label }) => {
-    const headerRow = wsData.length;
     wsData.push([label, 'Artikel / Sorte', 'Menge', 'Einheit', 'VK-Preis (€)', 'Gesamt (€)']);
-
     state[key].forEach((row, idx) => {
       const menge = parseNum(String(row.menge));
-      const vk    = parseNum(String(row.vk));
-      wsData.push([
-        idx + 1,
-        row.artikel,
-        menge,
-        row.einheit,
-        vk,
-        menge * vk
-      ]);
+      const vk = parseNum(String(row.vk));
+      wsData.push([idx + 1, row.artikel, menge, row.einheit, vk, menge * vk]);
     });
-
     const sub = subtotal(key);
-    const subRow = wsData.length;
     wsData.push(['', 'Zwischensumme ' + label, '', '', '', sub]);
     grandCells.push(sub);
     wsData.push([]);
   });
-
-  const grand = grandCells.reduce((a,b) => a + b, 0);
+  const grand = grandCells.reduce((a, b) => a + b, 0);
   wsData.push(['', 'GESAMTPREIS', '', '', '', grand]);
-
   const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-  // column widths
-  ws['!cols'] = [
-    { wch: 6 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 14 }
-  ];
-
+  ws['!cols'] = [{ wch: 6 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 14 }];
   XLSX.utils.book_append_sheet(wb, ws, 'Kalkulation');
-
-  // ── Individual sheets ────────────────────────────────────────────────────
   cats.forEach(({ key, label }) => {
     const rows = [
       ['#', 'Artikel / Sorte', 'Menge', 'Einheit', 'VK-Preis (€)', 'Gesamt (€)'],
       ...state[key].map((row, idx) => {
         const menge = parseNum(String(row.menge));
-        const vk    = parseNum(String(row.vk));
+        const vk = parseNum(String(row.vk));
         return [idx + 1, row.artikel, menge, row.einheit, vk, menge * vk];
       }),
       [],
       ['', 'Zwischensumme', '', '', '', subtotal(key)]
     ];
     const ws2 = XLSX.utils.aoa_to_sheet(rows);
-    ws2['!cols'] = [{ wch:4 },{ wch:28 },{ wch:10 },{ wch:10 },{ wch:14 },{ wch:14 }];
+    ws2['!cols'] = [{ wch: 4 }, { wch: 28 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 14 }];
     XLSX.utils.book_append_sheet(wb, ws2, label);
   });
-
-  // filename
-  const dateStr = datum ? datum.replace(/-/g,'') : new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const dateStr = datum ? datum.replace(/-/g, '') : new Date().toISOString().slice(0, 10).replace(/-/g, '');
   XLSX.writeFile(wb, `Blumen_Kalkulation_${dateStr}.xlsx`);
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-document.getElementById('inp-datum').value = new Date().toISOString().slice(0,10);
-
-// Pre-fill a starter row for each category
+document.getElementById('inp-datum').value = new Date().toISOString().slice(0, 10);
 addRow('rosen');
 addRow('gerbera');
 addRow('pistacia');
