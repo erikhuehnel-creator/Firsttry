@@ -3,645 +3,102 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blumen Preiskalkulator</title>
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f8f0f5 0%, #fff5f0 50%, #f0f8f0 100%);
-      min-height: 100vh;
-      padding: 24px 16px;
-      color: #333;
-    }
-
-    h1 {
-      text-align: center;
-      font-size: 1.8rem;
-      color: #7b3f6e;
-      margin-bottom: 28px;
-      letter-spacing: 0.5px;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .section {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 20px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #fff;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .section-header .icon { font-size: 1.4rem; }
-    .section-header .toggle { margin-left: auto; transition: transform 0.2s; }
-    .section-header.open .toggle { transform: rotate(180deg); }
-
-    .rosen   .section-header { background: linear-gradient(90deg, #c0395e, #e05a80); }
-    .gerbera .section-header { background: linear-gradient(90deg, #d4760a, #f09d30); }
-    .pistacia .section-header { background: linear-gradient(90deg, #4a7c3f, #72b562); }
-
-    .section-body { padding: 0 20px 16px; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 14px;
-    }
-
-    thead th {
-      text-align: left;
-      padding: 8px 10px;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: #777;
-      border-bottom: 2px solid #eee;
-    }
-
-    tbody tr { border-bottom: 1px solid #f0f0f0; }
-    tbody tr:last-child { border-bottom: none; }
-
-    tbody td {
-      padding: 6px 10px;
-      vertical-align: middle;
-    }
-
-    .row-num {
-      font-size: 0.8rem;
-      color: #bbb;
-      width: 28px;
-    }
-
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 0.95rem;
-      transition: border-color 0.15s;
-      background: #fafafa;
-    }
-
-    input[type="number"] { text-align: right; }
-
-    input:focus {
-      outline: none;
-      border-color: #7b3f6e;
-      background: #fff;
-    }
-
-    .col-artikel { width: 35%; }
-    .col-menge   { width: 14%; }
-    .col-einheit { width: 14%; }
-    .col-vk      { width: 16%; }
-    .col-gesamt  { width: 16%; text-align: right; font-weight: 600; }
-    .col-del     { width: 40px; text-align: center; }
-
-    .row-total { font-weight: 600; color: #555; }
-
-    .btn-add {
-      margin-top: 10px;
-      padding: 7px 16px;
-      border: none;
-      border-radius: 20px;
-      font-size: 0.88rem;
-      cursor: pointer;
-      color: #fff;
-      transition: opacity 0.15s;
-    }
-    .btn-add:hover { opacity: 0.85; }
-
-    .rosen   .btn-add { background: #c0395e; }
-    .gerbera .btn-add { background: #d4760a; }
-    .pistacia .btn-add { background: #4a7c3f; }
-
-    .btn-del {
-      background: none;
-      border: none;
-      color: #ccc;
-      font-size: 1.1rem;
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 4px;
-      transition: color 0.15s;
-    }
-    .btn-del:hover { color: #e05a80; }
-
-    .subtotal-row td {
-      padding: 8px 10px;
-      border-top: 2px solid #eee;
-      font-weight: 700;
-      color: #444;
-    }
-
-    /* Summary */
-    .summary {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      padding: 20px 24px;
-      margin-bottom: 20px;
-    }
-
-    .summary h2 {
-      font-size: 1.15rem;
-      color: #7b3f6e;
-      margin-bottom: 16px;
-      border-bottom: 2px solid #f0e6ee;
-      padding-bottom: 8px;
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .summary-card {
-      border-radius: 8px;
-      padding: 14px 16px;
-      text-align: center;
-    }
-
-    .summary-card .label {
-      font-size: 0.82rem;
-      color: #888;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .summary-card .value {
-      font-size: 1.4rem;
-      font-weight: 700;
-    }
-
-    .card-rosen    { background: #fef0f4; }
-    .card-rosen    .value { color: #c0395e; }
-    .card-gerbera  { background: #fef5e9; }
-    .card-gerbera  .value { color: #d4760a; }
-    .card-pistacia { background: #eef7ec; }
-    .card-pistacia .value { color: #4a7c3f; }
-    .card-total    { background: #f0ebf5; }
-    .card-total    .value { color: #7b3f6e; font-size: 1.7rem; }
-
-    .actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .btn-action {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 22px;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-
-    .btn-action:hover { opacity: 0.88; transform: translateY(-1px); }
-    .btn-action:active { transform: translateY(0); }
-
-    .btn-reset  { background: #f0f0f0; color: #555; }
-    .btn-excel  { background: #1e6c3a; color: #fff; }
-
-    /* Date / order info bar */
-    .info-bar {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .info-bar label {
-      font-size: 0.85rem;
-      color: #777;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .info-bar input[type="text"],
-    .info-bar input[type="date"] {
-      padding: 7px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 0.92rem;
-      background: #fff;
-    }
-
-    .info-bar input:focus {
-      outline: none;
-      border-color: #7b3f6e;
-    }
-  </style>
+  <title>Profiflora – Filialsystem</title>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-<div class="container">
-  <h1>Blumen Preiskalkulator</h1>
 
-  <!-- Info Bar -->
-  <div class="info-bar">
-    <label>
-      Datum
-      <input type="date" id="inp-datum" />
-    </label>
-    <label>
-      Auftrag / Kunde
-      <input type="text" id="inp-auftrag" placeholder="z. B. Müller Hochzeit" style="width:220px" />
-    </label>
-  </div>
-
-  <!-- ROSEN -->
-  <div class="section rosen">
-    <div class="section-header open" onclick="toggleSection(this)">
-      <span class="icon">🌹</span> Rosen
-      <span class="toggle">▼</span>
-    </div>
-    <div class="section-body" id="body-rosen">
-      <table id="tbl-rosen">
-        <thead>
-          <tr>
-            <th class="row-num">#</th>
-            <th class="col-artikel">Artikel / Sorte</th>
-            <th class="col-menge">Menge</th>
-            <th class="col-einheit">Einheit</th>
-            <th class="col-vk">VK-Preis (€)</th>
-            <th class="col-gesamt">Gesamt (€)</th>
-            <th class="col-del"></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-          <tr class="subtotal-row">
-            <td colspan="5" style="text-align:right">Zwischensumme Rosen:</td>
-            <td class="col-gesamt" id="sub-rosen">0,00 €</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-      <button class="btn-add" onclick="addRow('rosen')">+ Zeile hinzufügen</button>
-    </div>
-  </div>
-
-  <!-- GERBERA -->
-  <div class="section gerbera">
-    <div class="section-header open" onclick="toggleSection(this)">
-      <span class="icon">🌼</span> Gerbera
-      <span class="toggle">▼</span>
-    </div>
-    <div class="section-body" id="body-gerbera">
-      <table id="tbl-gerbera">
-        <thead>
-          <tr>
-            <th class="row-num">#</th>
-            <th class="col-artikel">Artikel / Sorte</th>
-            <th class="col-menge">Menge</th>
-            <th class="col-einheit">Einheit</th>
-            <th class="col-vk">VK-Preis (€)</th>
-            <th class="col-gesamt">Gesamt (€)</th>
-            <th class="col-del"></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-          <tr class="subtotal-row">
-            <td colspan="5" style="text-align:right">Zwischensumme Gerbera:</td>
-            <td class="col-gesamt" id="sub-gerbera">0,00 €</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-      <button class="btn-add" onclick="addRow('gerbera')">+ Zeile hinzufügen</button>
-    </div>
-  </div>
-
-  <!-- PISTACIA -->
-  <div class="section pistacia">
-    <div class="section-header open" onclick="toggleSection(this)">
-      <span class="icon">🌿</span> Pistacia
-      <span class="toggle">▼</span>
-    </div>
-    <div class="section-body" id="body-pistacia">
-      <table id="tbl-pistacia">
-        <thead>
-          <tr>
-            <th class="row-num">#</th>
-            <th class="col-artikel">Artikel / Sorte</th>
-            <th class="col-menge">Menge</th>
-            <th class="col-einheit">Einheit</th>
-            <th class="col-vk">VK-Preis (€)</th>
-            <th class="col-gesamt">Gesamt (€)</th>
-            <th class="col-del"></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-          <tr class="subtotal-row">
-            <td colspan="5" style="text-align:right">Zwischensumme Pistacia:</td>
-            <td class="col-gesamt" id="sub-pistacia">0,00 €</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-      <button class="btn-add" onclick="addRow('pistacia')">+ Zeile hinzufügen</button>
-    </div>
-  </div>
-
-  <!-- SUMMARY -->
-  <div class="summary">
-    <h2>Gesamtübersicht</h2>
-    <div class="summary-grid">
-      <div class="summary-card card-rosen">
-        <div class="label">Rosen</div>
-        <div class="value" id="tot-rosen">0,00 €</div>
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       LOGIN SCREEN
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="login-wrapper" id="login-screen">
+    <div class="login-card">
+      <div class="login-header">
+        <h1>Profiflora</h1>
+        <p>Filialsystem – Anmeldung</p>
       </div>
-      <div class="summary-card card-gerbera">
-        <div class="label">Gerbera</div>
-        <div class="value" id="tot-gerbera">0,00 €</div>
-      </div>
-      <div class="summary-card card-pistacia">
-        <div class="label">Pistacia</div>
-        <div class="value" id="tot-pistacia">0,00 €</div>
-      </div>
-      <div class="summary-card card-total">
-        <div class="label">Gesamtpreis</div>
-        <div class="value" id="tot-gesamt">0,00 €</div>
+      <div class="login-body">
+        <div class="login-error" id="login-error"></div>
+        <div class="form-group">
+          <label for="login-user">Benutzer</label>
+          <select id="login-user" class="input">
+            <option value="">— Bitte wählen —</option>
+            <option value="admin">Admin (Dashboard)</option>
+            <option value="filiale1">Filiale 1</option>
+            <option value="filiale2">Filiale 2</option>
+            <option value="filiale3">Filiale 3</option>
+            <option value="filiale4">Filiale 4</option>
+            <option value="filiale5">Filiale 5</option>
+            <option value="filiale6">Filiale 6</option>
+            <option value="filiale7">Filiale 7</option>
+            <option value="filiale8">Filiale 8</option>
+            <option value="filiale9">Filiale 9</option>
+            <option value="filiale10">Filiale 10</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="login-pass">Passwort</label>
+          <input type="password" id="login-pass" placeholder="Passwort eingeben" />
+        </div>
+        <button class="btn btn-primary" id="login-btn">Anmelden</button>
       </div>
     </div>
-    <div class="actions">
-      <button class="btn-action btn-reset" onclick="resetAll()">↺ Zurücksetzen</button>
-      <button class="btn-action btn-excel" onclick="exportExcel()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="12" y1="18" x2="12" y2="12"/>
-          <line x1="9" y1="15" x2="15" y2="15"/>
-        </svg>
-        Als Excel exportieren
-      </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       APP SHELL
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="app-wrapper" id="app">
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h1>Profiflora</h1>
+        <div class="user-info" id="sidebar-user"></div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <button class="nav-item" id="btn-logout" style="color: var(--danger);">
+          <span class="nav-icon">↪</span> Abmelden
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <div class="topbar">
+        <button class="menu-toggle" id="menu-toggle">☰</button>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-actions" id="topbar-actions"></div>
+      </div>
+      <div class="page-content" id="page-content">
+        <!-- Dynamic content rendered here -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Modal Container -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Modal</h3>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
     </div>
   </div>
-</div>
 
-<script>
-// ── State ─────────────────────────────────────────────────────────────────────
-const state = {
-  rosen:    [],
-  gerbera:  [],
-  pistacia: []
-};
-
-let counters = { rosen: 0, gerbera: 0, pistacia: 0 };
-
-const EINHEITEN = ['Stk', 'Bd', 'Bund', 'Topf', 'Kiste', 'Pack'];
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function fmt(n) {
-  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-}
-
-function parseNum(val) {
-  const cleaned = val.replace(',', '.').replace(/[^\d.]/g, '');
-  const n = parseFloat(cleaned);
-  return isNaN(n) ? 0 : n;
-}
-
-// ── Row management ────────────────────────────────────────────────────────────
-function addRow(cat, data = {}) {
-  const id = ++counters[cat];
-  const row = {
-    id,
-    artikel: data.artikel || '',
-    menge:   data.menge   !== undefined ? data.menge   : '',
-    einheit: data.einheit || 'Stk',
-    vk:      data.vk      !== undefined ? data.vk      : ''
-  };
-  state[cat].push(row);
-  renderTable(cat);
-  updateTotals();
-}
-
-function deleteRow(cat, id) {
-  state[cat] = state[cat].filter(r => r.id !== id);
-  renderTable(cat);
-  updateTotals();
-}
-
-function updateField(cat, id, field, value) {
-  const row = state[cat].find(r => r.id === id);
-  if (!row) return;
-  row[field] = value;
-  updateTotals();
-  // only update the gesamt cell, not the whole table
-  const cell = document.getElementById(`gesamt-${cat}-${id}`);
-  if (cell) {
-    const total = parseNum(String(row.menge)) * parseNum(String(row.vk));
-    cell.textContent = total > 0 ? fmt(total) : '—';
-  }
-}
-
-// ── Render ────────────────────────────────────────────────────────────────────
-function renderTable(cat) {
-  const tbody = document.querySelector(`#tbl-${cat} tbody`);
-  tbody.innerHTML = '';
-
-  state[cat].forEach((row, idx) => {
-    const tr = document.createElement('tr');
-
-    // einheit options
-    const opts = EINHEITEN.map(e =>
-      `<option value="${e}" ${e === row.einheit ? 'selected' : ''}>${e}</option>`
-    ).join('');
-
-    const total = parseNum(String(row.menge)) * parseNum(String(row.vk));
-
-    tr.innerHTML = `
-      <td class="row-num">${idx + 1}</td>
-      <td><input type="text" value="${escHtml(row.artikel)}" placeholder="Sorte / Bezeichnung"
-          onchange="updateField('${cat}',${row.id},'artikel',this.value)" /></td>
-      <td><input type="number" min="0" step="1" value="${row.menge}"
-          placeholder="0"
-          oninput="updateField('${cat}',${row.id},'menge',this.value)" /></td>
-      <td>
-        <select style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fafafa;font-size:0.9rem"
-            onchange="updateField('${cat}',${row.id},'einheit',this.value)">
-          ${opts}
-        </select>
-      </td>
-      <td><input type="number" min="0" step="0.01" value="${row.vk}"
-          placeholder="0,00"
-          oninput="updateField('${cat}',${row.id},'vk',this.value)" /></td>
-      <td class="col-gesamt" id="gesamt-${cat}-${row.id}">${total > 0 ? fmt(total) : '—'}</td>
-      <td><button class="btn-del" title="Zeile löschen" onclick="deleteRow('${cat}',${row.id})">✕</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── Totals ────────────────────────────────────────────────────────────────────
-function subtotal(cat) {
-  return state[cat].reduce((sum, r) => {
-    return sum + parseNum(String(r.menge)) * parseNum(String(r.vk));
-  }, 0);
-}
-
-function updateTotals() {
-  const cats = ['rosen', 'gerbera', 'pistacia'];
-  let grand = 0;
-  cats.forEach(cat => {
-    const s = subtotal(cat);
-    grand += s;
-    const f = fmt(s);
-    document.getElementById(`sub-${cat}`).textContent = f;
-    document.getElementById(`tot-${cat}`).textContent = f;
-  });
-  document.getElementById('tot-gesamt').textContent = fmt(grand);
-}
-
-// ── Section toggle ────────────────────────────────────────────────────────────
-function toggleSection(header) {
-  const body = header.nextElementSibling;
-  const isOpen = header.classList.contains('open');
-  if (isOpen) {
-    body.style.display = 'none';
-    header.classList.remove('open');
-  } else {
-    body.style.display = '';
-    header.classList.add('open');
-  }
-}
-
-// ── Reset ─────────────────────────────────────────────────────────────────────
-function resetAll() {
-  if (!confirm('Alle Einträge löschen und zurücksetzen?')) return;
-  state.rosen = [];
-  state.gerbera = [];
-  state.pistacia = [];
-  counters = { rosen: 0, gerbera: 0, pistacia: 0 };
-  ['rosen','gerbera','pistacia'].forEach(cat => renderTable(cat));
-  updateTotals();
-  document.getElementById('inp-auftrag').value = '';
-  document.getElementById('inp-datum').value = '';
-}
-
-// ── Excel Export ──────────────────────────────────────────────────────────────
-function exportExcel() {
-  const wb = XLSX.utils.book_new();
-
-  const datum   = document.getElementById('inp-datum').value || '';
-  const auftrag = document.getElementById('inp-auftrag').value || '';
-
-  const cats = [
-    { key: 'rosen',    label: 'Rosen',    color: 'FFC0395E' },
-    { key: 'gerbera',  label: 'Gerbera',  color: 'FFD4760A' },
-    { key: 'pistacia', label: 'Pistacia', color: 'FF4A7C3F' }
-  ];
-
-  // ── Combined sheet ───────────────────────────────────────────────────────
-  const wsData = [];
-  wsData.push(['Blumen Preiskalkulator']);
-  wsData.push([]);
-  if (datum   ) wsData.push(['Datum:', datum]);
-  if (auftrag ) wsData.push(['Auftrag / Kunde:', auftrag]);
-  wsData.push([]);
-
-  const grandCells = [];
-
-  cats.forEach(({ key, label }) => {
-    const headerRow = wsData.length;
-    wsData.push([label, 'Artikel / Sorte', 'Menge', 'Einheit', 'VK-Preis (€)', 'Gesamt (€)']);
-
-    state[key].forEach((row, idx) => {
-      const menge = parseNum(String(row.menge));
-      const vk    = parseNum(String(row.vk));
-      wsData.push([
-        idx + 1,
-        row.artikel,
-        menge,
-        row.einheit,
-        vk,
-        menge * vk
-      ]);
-    });
-
-    const sub = subtotal(key);
-    const subRow = wsData.length;
-    wsData.push(['', 'Zwischensumme ' + label, '', '', '', sub]);
-    grandCells.push(sub);
-    wsData.push([]);
-  });
-
-  const grand = grandCells.reduce((a,b) => a + b, 0);
-  wsData.push(['', 'GESAMTPREIS', '', '', '', grand]);
-
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-  // column widths
-  ws['!cols'] = [
-    { wch: 6 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 14 }
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Kalkulation');
-
-  // ── Individual sheets ────────────────────────────────────────────────────
-  cats.forEach(({ key, label }) => {
-    const rows = [
-      ['#', 'Artikel / Sorte', 'Menge', 'Einheit', 'VK-Preis (€)', 'Gesamt (€)'],
-      ...state[key].map((row, idx) => {
-        const menge = parseNum(String(row.menge));
-        const vk    = parseNum(String(row.vk));
-        return [idx + 1, row.artikel, menge, row.einheit, vk, menge * vk];
-      }),
-      [],
-      ['', 'Zwischensumme', '', '', '', subtotal(key)]
-    ];
-    const ws2 = XLSX.utils.aoa_to_sheet(rows);
-    ws2['!cols'] = [{ wch:4 },{ wch:28 },{ wch:10 },{ wch:10 },{ wch:14 },{ wch:14 }];
-    XLSX.utils.book_append_sheet(wb, ws2, label);
-  });
-
-  // filename
-  const dateStr = datum ? datum.replace(/-/g,'') : new Date().toISOString().slice(0,10).replace(/-/g,'');
-  XLSX.writeFile(wb, `Blumen_Kalkulation_${dateStr}.xlsx`);
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-document.getElementById('inp-datum').value = new Date().toISOString().slice(0,10);
-
-// Pre-fill a starter row for each category
-addRow('rosen');
-addRow('gerbera');
-addRow('pistacia');
-</script>
+  <!-- Scripts -->
+  <script src="js/catalog.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
