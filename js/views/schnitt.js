@@ -9,17 +9,18 @@ const SchnittView = {
   _date: '',
 
   render() {
-    this._date = Utils.todayISO();
+    // Datum nur beim ersten Aufruf auf heute setzen – nicht überschreiben wenn bereits gesetzt
+    if (!this._date) this._date = Utils.todayISO();
     this._mengen = {};
 
     const catalog = Store.getCatalog();
     const expected = Store.getExpectedSales();
     const branchId = Auth.getBranchId();
 
-    // Bestehende Einträge für heute laden
+    // Bestehende Einträge für das gewählte Datum laden
     const existingOrders = Store.getOrders(branchId, 'schnitt');
-    const todayOrders = existingOrders.filter(o => o.date === this._date);
-    todayOrders.forEach(o => { this._mengen[o.productId] = o.menge; });
+    const dateOrders = existingOrders.filter(o => o.date === this._date);
+    dateOrders.forEach(o => { this._mengen[o.productId] = o.menge; });
 
     const html = `
       <div class="date-bar">

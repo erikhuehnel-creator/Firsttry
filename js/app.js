@@ -192,6 +192,17 @@ const App = {
       return;
     }
 
+    // Datum-State zurücksetzen wenn die Ansicht gewechselt wird
+    // (damit immer "heute" vorgewählt ist beim ersten Öffnen)
+    if (hash !== this._lastRoute) {
+      SchnittView._date  = '';
+      LandgardView._date = '';
+      WriteoffsView._date = '';
+      InventoryView._date = '';
+      NonFoodView._date   = '';
+    }
+    this._lastRoute = hash;
+
     // Views rendern
     switch (hash) {
       case 'dashboard':  DashboardView.render();    break;

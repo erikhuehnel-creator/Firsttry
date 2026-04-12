@@ -8,7 +8,8 @@ const LandgardView = {
   _date: '',
 
   render() {
-    this._date = Utils.todayISO();
+    // Datum nur beim ersten Aufruf auf heute setzen – nicht überschreiben wenn bereits gesetzt
+    if (!this._date) this._date = Utils.todayISO();
     this._mengen = {};
 
     const catalog  = Store.getCatalog();
