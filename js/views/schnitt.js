@@ -44,6 +44,8 @@ const SchnittView = {
         ${catalog.schnitt.categories.map(cat => this._renderCategory(cat, expected)).join('')}
       </div>
 
+      ${UrgentOrderView.render('schnitt')}
+
       <div class="summary-bar" id="schnitt-summary">
         ${this._renderSummary()}
       </div>
@@ -60,17 +62,19 @@ const SchnittView = {
           <span>${Utils.escHtml(cat.name)}</span>
           <span class="chevron">▼</span>
         </div>
+
         <div class="category-body">
           <div class="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th style="width:35%">Artikel / Sorte</th>
-                  <th style="width:10%">VE</th>
-                  <th style="width:14%" class="text-right">VK-Preis</th>
-                  <th style="width:16%" class="text-right">Erwartet</th>
+                  <th style="width:28%">Artikel / Sorte</th>
+                  <th style="width:9%">Größe</th>
+                  <th style="width:9%">VE</th>
+                  <th style="width:13%" class="text-right">VK-Preis</th>
+                  <th style="width:13%" class="text-right">Erwartet</th>
                   <th style="width:14%" class="text-right">Menge</th>
-                  <th style="width:11%" class="text-right">Gesamt</th>
+                  <th style="width:14%" class="text-right">Gesamt</th>
                 </tr>
               </thead>
               <tbody>
@@ -90,6 +94,7 @@ const SchnittView = {
     return `
       <tr id="row-s-${item.id}">
         <td>${Utils.escHtml(item.name)}</td>
+        <td><span style="font-size:0.82rem;color:var(--gray-600)">${item.groesse ? Utils.escHtml(item.groesse) : '—'}</span></td>
         <td><span class="badge badge-yellow">${Utils.escHtml(item.ve)}</span></td>
         <td class="text-right">${Utils.fmtEuro(item.vk)}</td>
         <td class="text-right text-muted">${exp > 0 ? exp : '—'}</td>

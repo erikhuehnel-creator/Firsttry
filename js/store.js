@@ -216,6 +216,39 @@ const Store = {
     this.saveOrders(branchId, type, orders);
   },
 
+  // ── Dringende Bestellungen ─────────────────────────────────────────────
+  getUrgentOrders(branchId) {
+    return this._get(`urgent_${branchId}`) || [];
+  },
+  saveUrgentOrders(branchId, orders) {
+    this._set(`urgent_${branchId}`, orders);
+  },
+  addUrgentOrder(branchId, data) {
+    const orders = this.getUrgentOrders(branchId);
+    const entry  = {
+      id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      createdAt: new Date().toISOString(),
+      submitted: false,
+      submittedAt: null,
+      ...data
+    };
+    orders.push(entry);
+    this.saveUrgentOrders(branchId, orders);
+    return entry;
+  },
+  deleteUrgentOrder(branchId, id) {
+    const orders = this.getUrgentOrders(branchId).filter(o => o.id !== id);
+    this.saveUrgentOrders(branchId, orders);
+  },
+  getAllUrgentOrders() {
+    const all = {};
+    for (let i = 1; i <= 10; i++) {
+      const u = this.getUrgentOrders(i);
+      if (u.length > 0) all[i] = u;
+    }
+    return all;
+  },
+
   // ── Write-offs (Abschreibungen) ────────────────────────────────────────
   // {
   //   id, date, sorte, stueckzahl, vkPreis, type: 'schnitt'|'pflanzen'|'sonstiges'

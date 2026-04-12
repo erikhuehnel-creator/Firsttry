@@ -43,6 +43,8 @@ const LandgardView = {
         ${catalog.landgard.categories.map(cat => this._renderCategory(cat, expected)).join('')}
       </div>
 
+      ${UrgentOrderView.render('landgard')}
+
       <div class="summary-bar" id="landgard-summary">
         ${this._renderSummary()}
       </div>

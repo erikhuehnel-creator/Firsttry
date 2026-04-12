@@ -58,9 +58,10 @@ const CatalogAdminView = {
           <table>
             <thead>
               <tr>
-                <th style="width:35%">Artikelname</th>
-                <th style="width:12%">VE</th>
-                <th style="width:16%" class="text-right">VK-Preis (€)</th>
+                <th style="width:30%">Artikelname</th>
+                <th style="width:10%">VE</th>
+                <th style="width:14%" class="text-right">VK-Preis (€)</th>
+                ${type === 'schnitt'  ? '<th style="width:12%">Größe</th>' : ''}
                 ${type === 'landgard' ? '<th style="width:10%">Topf</th>' : ''}
                 <th style="width:44px"></th>
               </tr>
@@ -90,6 +91,11 @@ const CatalogAdminView = {
            value="${Utils.escHtml(item.topf || '')}" placeholder="12"
            onchange="CatalogAdminView.updateItem('${type}',${catIdx},${itemIdx},'topf',this.value)" /></td>`
       : '';
+    const groesseCol = type === 'schnitt'
+      ? `<td><input type="text" class="input input-sm" style="width:80px"
+           value="${Utils.escHtml(item.groesse || '')}" placeholder="z.B. 50cm"
+           onchange="CatalogAdminView.updateItem('${type}',${catIdx},${itemIdx},'groesse',this.value)" /></td>`
+      : '';
     return `
       <tr>
         <td>
@@ -108,6 +114,7 @@ const CatalogAdminView = {
             oninput="CatalogAdminView.updateItem('${type}',${catIdx},${itemIdx},'vk',this.value)" />
         </td>
         ${topfCol}
+        ${groesseCol}
         <td>
           <button class="btn-delete-row"
             onclick="CatalogAdminView.deleteItem('${type}',${catIdx},${itemIdx})">✕</button>

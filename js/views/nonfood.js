@@ -52,6 +52,8 @@ const NonFoodView = {
         </div>
       </div>
 
+      ${UrgentOrderView.render('nonfood')}
+
       <div class="card mt-md">
         <div class="card-header"><h3>Frühere Bestellungen</h3></div>
         <div class="card-body" style="padding:0">
