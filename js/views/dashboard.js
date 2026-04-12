@@ -12,12 +12,10 @@ const DashboardView = {
 
     const html = `
       <div class="tabs">
-        <button class="tab ${this._activeTab==='overview'?'active':''}" onclick="DashboardView.setTab('overview')">Übersicht</button>
-        <button class="tab ${this._activeTab==='schnitt'?'active':''}"   onclick="DashboardView.setTab('schnitt')">Schnittbestellungen</button>
-        <button class="tab ${this._activeTab==='landgard'?'active':''}"  onclick="DashboardView.setTab('landgard')">Landgard</button>
-        <button class="tab ${this._activeTab==='nonfood'?'active':''}"   onclick="DashboardView.setTab('nonfood')">Non-Food</button>
-        <button class="tab ${this._activeTab==='writeoffs'?'active':''}" onclick="DashboardView.setTab('writeoffs')">Abschreibungen</button>
-        <button class="tab ${this._activeTab==='inventory'?'active':''}" onclick="DashboardView.setTab('inventory')">Inventur</button>
+        <button class="tab ${this._activeTab==='overview'?'active':''}"   onclick="DashboardView.setTab('overview')">Übersicht</button>
+        <button class="tab ${this._activeTab==='schnitt'?'active':''}"    onclick="DashboardView.setTab('schnitt')">Schnitt Gesamt</button>
+        <button class="tab ${this._activeTab==='writeoffs'?'active':''}"  onclick="DashboardView.setTab('writeoffs')">Abschreibungen</button>
+        <button class="tab ${this._activeTab==='inventory'?'active':''}"  onclick="DashboardView.setTab('inventory')">Inventur</button>
       </div>
       <div id="dashboard-content">
         ${this._renderTab(settings)}
@@ -31,9 +29,7 @@ const DashboardView = {
   _renderTab(settings) {
     switch (this._activeTab) {
       case 'overview':  return this._renderOverview(settings);
-      case 'schnitt':   return this._renderOrders('schnitt', settings);
-      case 'landgard':  return this._renderOrders('landgard', settings);
-      case 'nonfood':   return this._renderNonFood(settings);
+      case 'schnitt':   return this._renderSchnittGesamt(settings);
       case 'writeoffs': return this._renderWriteoffs(settings);
       case 'inventory': return this._renderInventory(settings);
       default: return '';
@@ -236,6 +232,116 @@ const DashboardView = {
         </div>
       `;
     }).join('');
+  },
+
+  // ── Schnitt Gesamt (aggregierte Mengen aller Filialen pro Sortiment) ─────
+  _renderSchnittGesamt(settings) {
+    const catalog  = Store.getCatalog();
+    const ekPreise = Store.getEkPreise();
+    const allOrders = Store.getAllOrders('schnitt');
+
+    // Alle Bestellungen aller Filialen sammeln
+    // Aggregieren: productId → { menge, filialenMengen: {branchId: menge} }
+    const aggregated = {}; // productId → { totalMenge, byBranch: {branchId: menge} }
+    Object.entries(allOrders).forEach(([branchId, orders]) => {
+      orders.forEach(o => {
+        if (!aggregated[o.productId]) {
+          aggregated[o.productId] = { totalMenge: 0, byBranch: {} };
+        }
+        aggregated[o.productId].totalMenge += o.menge;
+        aggregated[o.productId].byBranch[branchId] =
+          (aggregated[o.productId].byBranch[branchId] || 0) + o.menge;
+      });
+    });
+
+    if (Object.keys(aggregated).length === 0) {
+      return '<div class="empty-state"><div class="empty-icon">✂️</div><p>Noch keine Schnittbestellungen eingegangen.</p></div>';
+    }
+
+    // Filialnamen für Tooltips
+    const branchNames = settings.branchNames;
+
+    // Gesamtwerte
+    let gesamtVk = 0, gesamtEk = 0;
+
+    // Pro Kategorie rendern
+    const catHtml = catalog.schnitt.categories.map(cat => {
+      const itemRows = cat.items
+        .filter(item => aggregated[item.id])
+        .map(item => {
+          const agg = aggregated[item.id];
+          const ek  = ekPreise[item.id] || 0;
+          const vkGes = agg.totalMenge * item.vk;
+          const ekGes = agg.totalMenge * ek;
+          gesamtVk += vkGes;
+          gesamtEk += ekGes;
+
+          // Aufschlüsselung pro Filiale als kleiner Text
+          const byBranchText = Object.entries(agg.byBranch)
+            .map(([bid, m]) => `${branchNames[bid] || 'F'+bid}: ${m}`)
+            .join(' · ');
+
+          return `
+            <tr>
+              <td>
+                <div style="font-weight:500">${Utils.escHtml(item.name)}</div>
+                <div style="font-size:0.78rem;color:var(--gray-400);margin-top:2px">${byBranchText}</div>
+              </td>
+              <td><span class="badge badge-yellow">${Utils.escHtml(item.ve)}</span></td>
+              <td class="text-right text-bold" style="font-size:1.05rem">${agg.totalMenge}</td>
+              <td class="text-right">${Utils.fmtEuro(item.vk)}</td>
+              <td class="text-right" style="color:var(--gray-500)">${ek > 0 ? Utils.fmtEuro(ek) : '—'}</td>
+              <td class="text-right text-bold">${Utils.fmtEuro(vkGes)}</td>
+              <td class="text-right" style="color:var(--gray-600)">${ekGes > 0 ? Utils.fmtEuro(ekGes) : '—'}</td>
+            </tr>
+          `;
+        }).join('');
+
+      if (!itemRows) return '';
+      return `
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header" style="background:var(--gray-50)">
+            <h3>${Utils.escHtml(cat.name)}</h3>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr>
+                <th style="width:32%">Sortiment</th>
+                <th style="width:8%">VE</th>
+                <th class="text-right" style="width:12%">Gesamt-Menge</th>
+                <th class="text-right" style="width:12%">VK/Stk</th>
+                <th class="text-right" style="width:12%">EK/Stk</th>
+                <th class="text-right" style="width:12%">VK gesamt</th>
+                <th class="text-right" style="width:12%">EK gesamt</th>
+              </tr></thead>
+              <tbody>${itemRows}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="summary-bar" style="margin-bottom:20px">
+        <div class="summary-item">
+          <span class="summary-label">Sortimente bestellt</span>
+          <span class="summary-value">${Object.keys(aggregated).length}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Beteiligte Filialen</span>
+          <span class="summary-value">${Object.keys(allOrders).length}</span>
+        </div>
+        <div class="summary-item summary-total">
+          <span class="summary-label">Gesamtbestellwert (VK)</span>
+          <span class="summary-value">${Utils.fmtEuro(gesamtVk)}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Gesamteinkaufswert (EK)</span>
+          <span class="summary-value" style="color:var(--gray-600)">${Utils.fmtEuro(gesamtEk)}</span>
+        </div>
+      </div>
+      ${catHtml}
+    `;
   },
 
   // ── Non-Food ─────────────────────────────────────────────────────────────

@@ -9,6 +9,12 @@ const App = {
 
   // ── Initialisierung ──────────────────────────────────────────────────────
   init() {
+    // Nutzerdaten + Filialnamen immer auf aktuellen Stand bringen
+    Store.forceUpdateUsers();
+    // Settings mit aktuellen Filialnamen initialisieren falls noch nicht vorhanden
+    const settings = Store.getSettings();
+    Store.saveSettings(settings);
+
     // Modal schließen
     document.getElementById('modal-close').addEventListener('click', () => Utils.closeModal());
     document.getElementById('modal-overlay').addEventListener('click', (e) => {

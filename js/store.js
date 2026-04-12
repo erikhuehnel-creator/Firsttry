@@ -52,7 +52,32 @@ const Store = {
     return users;
   },
 
+  // Feste Filial-Konfiguration (Kürzel + Passwort)
+  BRANCH_CONFIG: [
+    { id: 1,  kuerzel: 'MAL',  name: 'MAL'  },
+    { id: 2,  kuerzel: 'GÜM',  name: 'GÜM'  },
+    { id: 3,  kuerzel: 'BÜZ',  name: 'BÜZ'  },
+    { id: 4,  kuerzel: 'STA1', name: 'STA1' },
+    { id: 5,  kuerzel: 'HGW1', name: 'HGW1' },
+    { id: 6,  kuerzel: 'STA3', name: 'STA3' },
+    { id: 7,  kuerzel: 'GRI',  name: 'GRI'  },
+    { id: 8,  kuerzel: 'HRO',  name: 'HRO'  },
+    { id: 9,  kuerzel: 'WIS',  name: 'WIS'  },
+    { id: 10, kuerzel: 'HGW2', name: 'HGW2' },
+  ],
+
   _initUsers() {
+    return this._buildUsers();
+  },
+
+  // Immer aktuelle Nutzerdaten erzwingen (bei App-Update)
+  forceUpdateUsers() {
+    const updated = this._buildUsers();
+    this._set('users', updated);
+    return updated;
+  },
+
+  _buildUsers() {
     const users = {
       admin: {
         password: 'admin2026',
@@ -61,14 +86,14 @@ const Store = {
         branch: null
       }
     };
-    for (let i = 1; i <= 10; i++) {
-      users[`filiale${i}`] = {
-        password: `filiale${i}`,
+    this.BRANCH_CONFIG.forEach(b => {
+      users[`filiale${b.id}`] = {
+        password: `${b.kuerzel}#`,
         role: 'branch',
-        name: `Filiale ${i}`,
-        branch: i
+        name: b.name,
+        branch: b.id
       };
-    }
+    });
     this._set('users', users);
     return users;
   },
@@ -304,10 +329,9 @@ const Store = {
     return this._get('settings') || {
       companyName: 'Profiflora',
       branchNames: {
-        1: 'Filiale 1', 2: 'Filiale 2', 3: 'Filiale 3',
-        4: 'Filiale 4', 5: 'Filiale 5', 6: 'Filiale 6',
-        7: 'Filiale 7', 8: 'Filiale 8', 9: 'Filiale 9',
-        10: 'Filiale 10'
+        1: 'MAL', 2: 'GÜM', 3: 'BÜZ',
+        4: 'STA1', 5: 'HGW1', 6: 'STA3',
+        7: 'GRI', 8: 'HRO', 9: 'WIS', 10: 'HGW2'
       },
       currency: '€',
       dateFormat: 'de-DE'
